@@ -1,0 +1,25 @@
+# Python önbellek dosyaları (Gereksiz ağırlık yapmasın)
+__pycache__/
+*.py[cod]
+
+# Sanal Ortam (Herkes kendi bilgisayarında oluşturmalı)
+venv/
+env/
+.venv/
+
+# Toplanan statik dosyalar / test çıktıları
+staticfiles/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editör yedek/swap dosyaları (sır içerebilir)
+*.swp
+*.swo
+*~
+
+# Veritabanı (İçindeki test kullanıcıları ve şifreler gizli kalmalı)
+db.sqlite3
+
+# ÇOK ÖNEMLİ: Çevresel değişkenler ve API anahtarları
+.env

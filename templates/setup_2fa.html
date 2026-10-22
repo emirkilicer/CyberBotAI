@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card bg-black border-secondary p-4 rounded-0 text-center" style="width: 100%; max-width: 400px; border-width: 2px;">
+
+        <h2 class="mb-3" style="letter-spacing: 3px; font-weight: 200;">2FA SETUP</h2>
+
+        {% if needs_enrollment %}
+            <p class="text-secondary small mb-4">
+                This account was created outside the normal signup flow.
+                Enter the one-time enrollment token issued by an administrator.
+            </p>
+
+            {% if error %}
+                <div class="alert alert-danger p-2 small rounded-0 border-danger bg-transparent text-danger">{{ error }}</div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <input type="text" name="token" class="form-control bg-transparent text-white border-secondary rounded-0 text-center"
+                           placeholder="Enrollment token" required autocomplete="off"
+                           style="letter-spacing: 2px;">
+                </div>
+                <button type="submit" class="btn btn-light w-100 rounded-0 mt-2">CONTINUE</button>
+            </form>
+        {% else %}
+            <p class="text-secondary small mb-4">Please scan this QR code with your Google Authenticator app.</p>
+
+            <div class="bg-white p-2 d-inline-block mb-4 mx-auto">
+                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" style="width: 200px; height: 200px;">
+            </div>
+
+            {% if error %}
+                <div class="alert alert-danger p-2 small rounded-0 border-danger bg-transparent text-danger">{{ error }}</div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <input type="text" name="otp_code" class="form-control bg-transparent text-white border-secondary rounded-0 text-center"
+                           placeholder="Enter 6-digit code" maxlength="6" required
+                           inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code"
+                           style="letter-spacing: 5px; font-size: 1.2rem;">
+                </div>
+                <button type="submit" class="btn btn-light w-100 rounded-0 mt-2">VERIFY & ACTIVATE</button>
+            </form>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock content %}

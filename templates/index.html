@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Terminali İçin Özel Scrollbar Tasarımı */
+    #chat-response::-webkit-scrollbar {
+        width: 8px;
+    }
+    #chat-response::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+    #chat-response::-webkit-scrollbar-thumb {
+        background: #198754;
+        border-radius: 4px;
+    }
+    #chat-response::-webkit-scrollbar-thumb:hover {
+        background: #146c43;
+    }
+</style>
+<div class="container d-flex flex-column align-items-center pt-5" style="min-height: 80vh;">
+    
+    <div style="width: 10px; height: 10px; background-color: #fff; border-radius: 50%; box-shadow: 0 0 20px 10px rgba(255, 255, 255, 0.5); margin-bottom: 40px;"></div>
+
+    <h1 class="display-3 mb-5" style="letter-spacing: 15px; font-weight: 200;">W E L C O M E</h1>
+
+    <div class="w-100 text-center" style="max-width: 800px; margin-top: 100px;">
+        {% if user.is_authenticated %}
+            <input type="text" id="chat-input" 
+       class="form-control text-white border-secondary rounded-pill py-3 px-4" 
+       placeholder="how can i help you, {{ user.first_name|default:user.username|lower }}?" 
+       style="background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); text-align: left; font-family: Courier, monospace; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);">
+            
+            <div id="chat-response" class="mt-4 text-success text-start p-4 rounded-3" 
+                 style="letter-spacing: 1px; max-height: 45vh; overflow-y: auto; background-color: rgba(0,0,0,0.7); border: 1px solid #333; display: none; font-family: Courier, monospace; font-size: 0.9rem;">
+            </div>
+            
+        {% else %}
+            <div id="chat-response" class="mt-4 text-success text-start p-4 rounded-3" 
+     style="letter-spacing: 1px; max-height: 45vh; overflow-y: auto; flex-shrink: 0; background-color: rgba(0,0,0,0.7); border: 1px solid #333; display: none; font-family: Courier, monospace; font-size: 0.9rem;">
+</div>
+        {% endif %}
+    </div>
+
+    <script nonce="{{ request.csp_nonce }}">
+        const chatInput = document.getElementById('chat-input');
+        const responseArea = document.getElementById('chat-response');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        // Build the response with DOM nodes instead of innerHTML so model output
+        // (which can be influenced by prompt injection) is never interpreted as
+        // HTML. Only **bold** and newlines are rendered.
+        function appendFormatted(parent, text) {
+            const lines = String(text).split('\n');
+            lines.forEach((line, lineIndex) => {
+                if (lineIndex > 0) parent.appendChild(document.createElement('br'));
+                const parts = line.split(/(\*\*[^*]+\*\*)/g);
+                parts.forEach(part => {
+                    if (/^\*\*[^*]+\*\*$/.test(part)) {
+                        const strong = document.createElement('strong');
+                        strong.textContent = part.slice(2, -2);
+                        parent.appendChild(strong);
+                    } else if (part) {
+                        parent.appendChild(document.createTextNode(part));
+                    }
+                });
+            });
+        }
+
+        function setTerminal(state, text) {
+            responseArea.replaceChildren();
+
+            const title = document.createElement('strong');
+            title.textContent = state === 'error' ? '[ERROR]' : '[CYBERBOT_RESPONSE_TERMINAL]';
+            if (state !== 'error') title.className = 'text-light';
+            responseArea.appendChild(title);
+            responseArea.appendChild(document.createElement('br'));
+            responseArea.appendChild(document.createElement('br'));
+
+            if (state === 'loading') {
+                responseArea.appendChild(document.createTextNode('Processing request...'));
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm text-warning ms-2';
+                responseArea.appendChild(spinner);
+            } else {
+                const body = document.createElement('div');
+                appendFormatted(body, text);
+                responseArea.appendChild(body);
+            }
+
+            const styles = {
+                loading: ['mt-4 text-warning text-start p-4 rounded-3', '#ffc107'],
+                success: ['mt-4 text-success text-start p-4 rounded-3', '#198754'],
+                error: ['mt-4 text-danger text-start p-4 rounded-3', '#dc3545'],
+            };
+            const [className, border] = styles[state];
+            responseArea.className = className;
+            responseArea.style.border = '1px solid ' + border;
+            responseArea.style.display = 'block';
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message || chatInput.disabled) return;
+
+            chatInput.disabled = true;
+            setTerminal('loading');
+
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({ message }),
+                });
+
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    data = {};
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.reply || 'Request failed (' + response.status + ')');
+                }
+                if (typeof data.reply !== 'string') {
+                    throw new Error('Invalid response from server.');
+                }
+
+                setTerminal('success', data.reply);
+                chatInput.value = '';
+            } catch (error) {
+                setTerminal('error', error.message || 'Connection to Cyberbot mainframe failed!');
+            } finally {
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        if (chatInput) {
+            chatInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+    </script>
+
+</div>
+{% endblock content %}

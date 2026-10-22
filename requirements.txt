@@ -1,0 +1,13 @@
+# Direct dependencies (pinned for reproducible installs)
+Django==5.2.17
+argon2-cffi==25.1.0
+cryptography==50.0.2
+dj-database-url==3.1.2
+google-genai==2.32.0
+pillow==13.0.0
+psycopg[binary]==3.3.6
+pyotp==2.10.0
+python-dotenv==1.2.4
+qrcode==8.2
+redis==8.1.0
+whitenoise==6.12.0

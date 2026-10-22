@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card bg-black border-secondary p-4 rounded-0" style="width: 100%; max-width: 400px; border-width: 2px;">
+        <h2 class="text-center mb-4" style="letter-spacing: 5px; font-weight: 200;">L O G I N</h2>
+        
+        {% if error %}
+            <div class="alert alert-danger p-2 small rounded-0 border-danger bg-transparent text-danger text-center">{{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label small text-secondary">Username</label>
+                <input type="text" name="username" class="form-control bg-transparent text-white border-secondary rounded-0" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label small text-secondary">Password</label>
+                <input type="password" name="password" class="form-control bg-transparent text-white border-secondary rounded-0" required>
+            </div>
+            <button type="submit" class="btn btn-light w-100 rounded-0">NEXT STEP</button>
+        </form>
+        <div class="text-center mt-4">
+            <a href="{% url 'password_reset' %}" class="small text-secondary">Forgot password?</a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

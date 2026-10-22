@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>CYBERBOT | Security</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #000000;
+            background-image: url('{% static "images/earth.jpg" %}');
+            background-size: cover;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black py-3 border-bottom border-dark">
+       <div class="container">
+    <a class="navbar-brand" href="/">C Y B E R B O T</a>
+    <div class="d-flex align-items-center">
+        {% if user.is_authenticated %}
+            <span class="text-secondary me-4 small">HELLO, {{ user.first_name|default:user.username|upper }}</span>
+            <a href="{% url 'profile' %}" class="nav-link text-white me-4" style="padding: 0;">PROFILE</a>
+            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger border-secondary text-secondary btn-sm rounded-0 px-3">LOGOUT</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}" class="nav-link text-white me-4" style="padding: 0;">LOGIN</a>
+            <a href="{% url 'signup' %}" class="btn btn-outline-light btn-sm rounded-0 px-3">SIGN UP</a>
+        {% endif %}
+    </div>
+</div>
+        </div>
+    </nav>
+
+    <main>
+        {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} rounded-0 small mb-2" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}
+        {% endblock content %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+</html>

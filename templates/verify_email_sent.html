@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card bg-black border-secondary p-4 rounded-0" style="width: 100%; max-width: 440px; border-width: 2px;">
+        <h2 class="text-center mb-4" style="letter-spacing: 3px; font-weight: 200;">VERIFY EMAIL</h2>
+
+        {% if error %}
+            <div class="alert alert-danger p-2 small rounded-0 border-danger bg-transparent text-danger text-center">{{ error }}</div>
+        {% endif %}
+
+        {% if sent %}
+            <p class="text-secondary small text-center mb-3">
+                If the address belongs to an account that still needs verification,
+                a new link has been sent. The response is intentionally identical
+                for every address.
+            </p>
+        {% elif email %}
+            <p class="text-secondary small text-center mb-3">
+                A verification link was sent to <span class="text-light">{{ email }}</span>.
+                Open it to continue. The link expires in 24 hours.
+            </p>
+        {% else %}
+            <p class="text-secondary small text-center mb-3">
+                Open the verification link from your email to continue.
+                If you did not receive it, request a new one below.
+            </p>
+        {% endif %}
+
+        <form method="post" action="{% url 'resend_email_verification' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label small text-secondary">Email address</label>
+                <input type="email" name="email" value="{{ email }}" required
+                       class="form-control bg-transparent text-white border-secondary rounded-0"
+                       autocomplete="email">
+            </div>
+            <button type="submit" class="btn btn-light w-100 rounded-0">RESEND LINK</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'login' %}" class="small text-secondary">Back to login</a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

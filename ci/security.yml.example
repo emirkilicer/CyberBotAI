@@ -1,0 +1,84 @@
+# NOTE: GitHub Blocks pushes of .github/workflows/* with a PAT that lacks the
+# `workflow` scope. This file is kept as an example. Add it through the GitHub
+# web UI, or push it with a token that has the `workflow` scope:
+#   cp ci/security.yml.example .github/workflows/security.yml
+#
+name: security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SECRET_KEY: "ci-only-secret-key-0123456789-abcdefghijklmnopqrstuvwxyz"
+      TOTP_ENCRYPTION_KEY: "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOW_INSECURE_HTTP: "True"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+      DJANGO_SECURE_COOKIES: "False"
+      DJANGO_SECURE_SSL_REDIRECT: "False"
+      DJANGO_SECURE_HSTS_SECONDS: "0"
+      DJANGO_REQUIRE_EMAIL_VERIFICATION: "False"
+      DJANGO_EMAIL_BACKEND: "django.core.mail.backends.locmem.EmailBackend"
+      DJANGO_LOG_JSON: "True"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install hashed dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements.lock
+          pip install bandit==1.9.4 pip-audit==2.10.1
+
+      - name: Django checks
+        run: python manage.py check
+
+      - name: Tests
+        run: python manage.py test -v 2
+
+      - name: Bandit
+        run: bandit -q -r core config -x 'core/migrations,core/tests.py'
+
+      - name: pip-audit
+        run: pip-audit -r requirements.lock
+
+  production-config:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SECRET_KEY: "ci-only-secret-key-0123456789-abcdefghijklmnopqrstuvwxyz"
+      TOTP_ENCRYPTION_KEY: "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOW_INSECURE_HTTP: "False"
+      DJANGO_ALLOWED_HOSTS: "example.com"
+      DJANGO_SECURE_COOKIES: "True"
+      DJANGO_SECURE_SSL_REDIRECT: "True"
+      DJANGO_SECURE_HSTS_SECONDS: "31536000"
+      DJANGO_REQUIRE_EMAIL_VERIFICATION: "True"
+      DJANGO_EMAIL_BACKEND: "django.core.mail.backends.smtp.EmailBackend"
+      ADMIN_IP_ALLOWLIST: "10.0.0.0/8"
+      REDIS_URL: "redis://localhost:6379/0"
+      DATABASE_URL: "postgres://user:pass@localhost:5432/cyberbot"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install hashed dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements.lock
+      - name: Production settings must import
+        run: python -c "import config.settings"

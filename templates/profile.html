@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card bg-black border-secondary p-4 rounded-0" style="width: 100%; max-width: 400px; border-width: 2px;">
+        <h2 class="text-center mb-4" style="letter-spacing: 5px; font-weight: 200;">P R O F I L E</h2>
+        
+        <p class="text-center text-secondary small mb-4">Username: {{ user.username }}</p>
+
+        <form method="post" action="{% url 'profile' %}">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="mb-4">
+                    <label class="form-label small text-secondary" style="letter-spacing: 2px;">{{ field.label }}</label>
+                    {{ field }}
+                    
+                    {% if field.errors %}
+                        <div class="text-danger small mt-1" style="letter-spacing: 0.5px;">
+                            {{ field.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-outline-light w-100 rounded-0 py-2 mt-2" style="letter-spacing: 3px;">
+                UPDATE INFO
+            </button>
+        </form>
+
+        <hr class="border-secondary my-4">
+
+        {% if recovery_error %}
+            <div class="alert alert-danger rounded-0 small p-2 mb-3 text-center" style="background-color: rgba(220, 53, 69, 0.1); border-color: #dc3545; color: #dc3545;">
+                {{ recovery_error }}
+            </div>
+        {% endif %}
+
+        <p class="text-secondary small mb-2" style="letter-spacing: 1px;">RECOVERY CODES</p>
+        <form method="post" action="{% url 'regenerate_recovery_codes' %}">
+            {% csrf_token %}
+            <div class="mb-2">
+                <input type="text" name="otp_code" class="form-control bg-transparent text-white border-secondary rounded-0 text-center"
+                       placeholder="2FA code" maxlength="6" required inputmode="numeric" pattern="[0-9]{6}"
+                       autocomplete="one-time-code" style="letter-spacing: 5px;">
+            </div>
+            <button type="submit" class="btn btn-outline-warning w-100 rounded-0 py-2" style="letter-spacing: 2px;">
+                REGENERATE CODES
+            </button>
+        </form>
+
+        <hr class="border-secondary my-4">
+
+        {% if delete_error %}
+            <div class="alert alert-danger rounded-0 small p-2 mb-3 text-center" style="background-color: rgba(220, 53, 69, 0.1); border-color: #dc3545; color: #dc3545;">
+                {{ delete_error }}
+            </div>
+        {% endif %}
+
+        <button type="button" class="btn btn-outline-danger w-100 rounded-0 py-2" style="letter-spacing: 3px;" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+            DELETE ACCOUNT
+        </button>
+        
+    </div>
+</div>
+
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-black border-secondary rounded-0" style="border-width: 2px;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-danger" id="deleteAccountModalLabel" style="letter-spacing: 2px;">DANGER ZONE</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form method="post" action="{% url 'delete_account' %}">
+                {% csrf_token %}
+                <div class="modal-body text-center p-4">
+                    <p class="text-light small mb-4">Are you sure you want to delete your account? This action cannot be undone.</p>
+                    <p class="text-warning small mb-3">Please enter your 6-digit 2FA code to confirm.</p>
+                    
+                    <input type="text" name="otp_code" class="form-control bg-transparent text-white border-secondary rounded-0 text-center mx-auto" 
+                           placeholder="000000" maxlength="6" required autocomplete="off"
+                           style="max-width: 150px; font-size: 1.5rem; letter-spacing: 5px;">
+                </div>
+                <div class="modal-footer border-secondary justify-content-between">
+                    <button type="button" class="btn btn-outline-light rounded-0" data-bs-dismiss="modal">CANCEL</button>
+                    <button type="submit" class="btn btn-danger rounded-0">CONFIRM DELETE</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+{% endblock content %}

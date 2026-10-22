@@ -1,0 +1,10 @@
+Hello {{ user.first_name|default:user.username }},
+
+Please verify your email address for CYBERBOT by opening the link below:
+
+{{ verification_url }}
+
+This link expires in 24 hours and can be used once. If you did not create
+this account, you can ignore this message.
+
+CYBERBOT Security

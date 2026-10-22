@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card bg-black border-secondary p-4 rounded-0" style="width: 100%; max-width: 520px; border-width: 2px;">
+        <h2 class="text-center mb-3" style="letter-spacing: 3px; font-weight: 200;">RECOVERY CODES</h2>
+
+        {% if codes %}
+            <div class="alert alert-warning rounded-0 small p-2 mb-3 text-center">
+                Store these codes offline now. They will not be shown again.
+                Each code can be used once instead of a 6-digit authenticator code.
+            </div>
+
+            <pre class="bg-black border border-secondary text-light p-3 mb-3" style="font-size: 1rem; letter-spacing: 2px;">{% for code in codes %}{{ code }}
+{% endfor %}</pre>
+
+            <a href="{% url 'home' %}" class="btn btn-light w-100 rounded-0">CONTINUE</a>
+        {% else %}
+            <p class="text-secondary small text-center mb-4">
+                No new recovery codes to display. Codes are shown only once, immediately
+                after enabling two-factor authentication.
+            </p>
+            <a href="{% url 'profile' %}" class="btn btn-outline-light w-100 rounded-0">BACK TO PROFILE</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
